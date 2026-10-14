@@ -452,6 +452,12 @@ class FrontPortTemplate(ModularComponentTemplateModel):
     def clean(self):
         super().clean()
 
+        # The import form leaves this optional so a `rear_port` alias can be copied onto it.
+        # An empty value is then excluded from field validation, and reading the relation raises
+        # RelatedObjectDoesNotExist, which the import views report as a permissions failure.
+        if self.rear_port_template_id is None:
+            raise ValidationError({"rear_port_template": "This field is required."})
+
         # Validate rear port assignment
         if self.device_type and self.rear_port_template.device_type != self.device_type:
             raise ValidationError(f"Rear port ({self.rear_port_template}) must belong to the same device type")

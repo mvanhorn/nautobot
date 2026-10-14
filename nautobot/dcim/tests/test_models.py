@@ -695,6 +695,18 @@ class FrontPortTemplateTestCase(ModelTestCases.BaseModelTestCase):
         with self.assertRaises(IntegrityError):
             instance.save()
 
+    def test_missing_rear_port_template_reports_validation_error(self):
+        """A front port template with no rear port fails validation rather than raising RelatedObjectDoesNotExist."""
+        instance = self.model(
+            device_type=self.device_type,
+            name="Front Port Missing Rear",
+            type=PortTypeChoices.TYPE_8P8C,
+        )
+        with self.assertRaises(ValidationError) as cm:
+            instance.clean()
+        self.assertIn("rear_port_template", cm.exception.message_dict)
+        self.assertIn("This field is required.", cm.exception.message_dict["rear_port_template"])
+
 
 class CableLengthTestCase(TestCase):
     @classmethod
